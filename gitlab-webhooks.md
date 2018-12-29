@@ -2,25 +2,36 @@
 
 ## 原理
 基本原理就是只要你在 gitlab 上操作了某个动作，就会触发 `webhooks`
+
 `webhooks` 就会请求你设定好的 URL，可以通过这个 URL 作为接口触发 web 服务器操作 `git pull`
+
 
 ## 踩过的坑
 因为 `webhooks` 请求你的接口，是模拟 `http` 请求，所以这里涉及到服务器要设置好权限
+
 而服务器上的 apache 用户跟你登录的又不一样，所以以下设置会涉及 `apache` 用户，目前以 `www` 为例
+
 
 ### SSH KEY
 `git pull` 是 `apache` 用户操作的，我们直接在服务器上用 ssh-keygen 命令是给你登录的当前用户创建的
+
 所以在生成 `SSH KEY` 的命令就是
+
 ```
 sudo -u www ssh-keygen -t rsa
 ```
-然后在服务器上 `clone` 也是需要用 `apache` 用户操作，这里以 `github` 的为例。*要使用 ssh 的地址*
+
+然后在服务器上 `clone` 也是需要用 `apache` 用户操作，这里以 `github` 的为例。**要使用 ssh 的地址**
+
 ```
 sudo -u www git clone git@github.com:docrud/notebook.git
 ```
 
+
 ### git 操作权限
+
 基本上 `apache` 用户是不会有 git 使用权限，所以我们设定一下，命令如下：
+
 ```
 vim /etc/sudoers
 
@@ -28,20 +39,31 @@ vim /etc/sudoers
 
 www localhost=(ALL) NOPASSWD:/usr/bin/git
 ```
+
 该文档是只读的，所以得强制保存
 
+
 ### PHP 是否开放 exec shell_exec 等函数
+
 可以先用 `phpinfo()` 查看以下 `disable_functions`
+
 如果被禁用了，就得通过 `php.ini` 找到 `disable_functions`，删除相对应函数名称
 
+
 ### webhooks
+
 登录 gitlab，切换到项目下，`setting - Integrations` 就可以新增 `webhooks`
+
 点 `edit` 可以查看 `Recent Deliveries`
+
 点 `View details` 就可以查看到请求详情（用于接口的接收）
 
 ### 接口代码 demo
+
 因为框架用的是 `thinkPHP 5.1`，所以直接在框架里写了个控制器
+
 需求相对简单，所以代码也写得简单
+
 ```php
 <?php
 namespace app\git\controller;
